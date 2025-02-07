@@ -4,8 +4,11 @@ import io.qameta.allure.Step;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
-
+import static constants.Constants.COURIER_LOGIN_URL;
 import static io.restassured.RestAssured.given;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -19,8 +22,8 @@ public class CourierLoginSteps {
                         .contentType(ContentType.JSON)
                         .body(courierLogin)
                         .when()
-                        .post("/api/v1/courier/login");
-        responseOfLoginCourier.then().statusCode(200)
+                        .post(COURIER_LOGIN_URL);
+        responseOfLoginCourier.then().statusCode(SC_OK)
                 .and()
                 .assertThat().body("id", notNullValue());
 
@@ -34,30 +37,30 @@ public class CourierLoginSteps {
                 .contentType(ContentType.JSON)
                 .body(courierLogin)
                 .when()
-                .post("/api/v1/courier/login");
+                .post(COURIER_LOGIN_URL);
     }
 
-    @Step("После успешной авторизации получаем id и код ответа 200")
+    @Step("После успешной авторизации получаем id и код ответа SC_OK")
     public static void responseAfterSuccessfulAuthorization(Response response) {
         response.then()
-                .assertThat()
-                .body("id", notNullValue())
-                .statusCode(200);
+                .statusCode(SC_OK)
+                .and()
+                .body("id", notNullValue());
     }
 
-    @Step("Ошибка и статус 404 при некорректном логине/пароле")
+    @Step("Ошибка и статус SC_NOT_FOUND при некорректном логине/пароле")
     public static void errorWhenLoginOrPasswordIncorrect(Response response) {
         response.then()
-                .assertThat()
-                .body("message", equalTo("Учетная запись не найдена"))
-                .statusCode(404);
+                .statusCode(SC_NOT_FOUND)
+                .and()
+                .body("message", equalTo("Учетная запись не найдена"));
     }
 
-    @Step("Ошибка и статус 400 при пустых полях логин/пароль")
+    @Step("Ошибка и статус SC_BAD_REQUEST при пустых полях логин/пароль")
     public static void errorWhenLoginPasswordEmpty(Response response) {
         response.then()
-                .assertThat()
-                .body("message", equalTo("Недостаточно данных для входа"))
-                .statusCode(400);
+                .statusCode(SC_BAD_REQUEST)
+                .and()
+                .body("message", equalTo("Недостаточно данных для входа"));
     }
 }

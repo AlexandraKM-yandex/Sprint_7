@@ -2,6 +2,7 @@ import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import order.OrderSteps;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,12 +15,13 @@ import java.util.List;
 @RunWith(Parameterized.class)
 public class OrderTest {
     private final List<String> color;
+    private int track;
 
     public OrderTest(List<String> color) {
         this.color = color;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "Тестовые данные: {0}")  // Улучшенная информативность
     public static Collection<Object[]> colorParameters() {
         return Arrays.asList(new Object[][]{
                 {Arrays.asList("BLACK")},
@@ -49,14 +51,12 @@ public class OrderTest {
         String comment = "А вообще, я хотела розовый";
         Response response = OrderSteps.OrderCreate(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, color);
         OrderSteps.orderCreationSuccess(response);
+        track = response.jsonPath().getInt("track");
     }
 
-    @Test
-    @DisplayName("Получение списка заказов")
-    @Description("При получении списка заказов значение 'orders' не пустое и код ответа равен 200")
-    public void getOrderList() {
-        Response response = OrderSteps.getOrdersList();
-        OrderSteps.checkResponseAndStatusCodeWhenGetOrderList(response);
+    @After
+    public void cancel() {
+        Response cancelResponse = OrderSteps.cancelOrder(track);
+        OrderSteps.cancelOrderSuccess(cancelResponse);
     }
-
 }

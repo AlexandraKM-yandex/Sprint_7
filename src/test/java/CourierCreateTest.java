@@ -1,23 +1,32 @@
+import com.github.javafaker.Faker;
 import courier.CourierCreateSteps;
-import courier.CourierLoginSteps;
 import courier.CourierLoginSteps;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.apache.http.HttpStatus.SC_OK;
 
 
 public class CourierCreateTest {
 
-    private final String login = "login2025";
-    private final String password = "2025";
-    private final String firstName = "name2025";
+    private String courierId;
+    private String login;
+    private String password;
+    private String firstName;
+    private Faker faker;
 
     @Before
     public void setUp() {
+        faker = new Faker();
+        login = faker.name().username();
+        password = faker.internet().password();
+        firstName = faker.name().firstName();
         Base.baseUrl();
     }
 
@@ -26,8 +35,8 @@ public class CourierCreateTest {
     @Description("Проверка, что возвращаемые тело ответа 'ok: true' и код ответа '201'")
     public void createNewCourier() {
         Response response = CourierCreateSteps.createCourier(login, password, firstName);
-        CourierCreateSteps.checkCreatingCourier(response); // Проверка успешного создания курьера
-        CourierCreateSteps.deleteCourier(CourierLoginSteps.loginCourierId(login, password)); // Удаление курьера после теста
+        CourierCreateSteps.checkCreatingCourier(response);
+        courierId = response.jsonPath().getString("id");
     }
 
     @Test
@@ -35,8 +44,8 @@ public class CourierCreateTest {
     @Description("Проверка, что возвращаемые тело ответа 'ok: true' и код ответа '201'")
     public void createCourierWithOnlyRequiredFields() {
         Response response = CourierCreateSteps.createCourierWithoutFirstName(login, password);
-        CourierCreateSteps.checkCreatingCourier(response); // Проверка успешного создания курьера
-        CourierCreateSteps.deleteCourier(CourierLoginSteps.loginCourierId(login, password)); // Удаление курьера после теста
+        CourierCreateSteps.checkCreatingCourier(response);
+        courierId = response.jsonPath().getString("id");
     }
 
     @Test
@@ -45,8 +54,8 @@ public class CourierCreateTest {
     public void cantCreateDuplicateCourier() {
         CourierCreateSteps.createCourier(login, password, firstName);
         Response response = CourierCreateSteps.createCourier(login, password, firstName);
-        CourierCreateSteps.checkCreatingCourierWithDuplicatedLogin(response); // Проверка ошибки с дублированным логином
-        CourierCreateSteps.deleteCourier(CourierLoginSteps.loginCourierId(login, password)); // Удаление курьера после теста
+        CourierCreateSteps.checkCreatingCourierWithDuplicatedLogin(response);
+        courierId = CourierLoginSteps.loginCourierId(login, password);
     }
 
     @Test
@@ -54,7 +63,7 @@ public class CourierCreateTest {
     @Description("Проверка, что возвращаемые тело ответа 'message: Недостаточно данных для создания учетной записи' и код ответа '400'")
     public void checkResponseWithoutLogin() {
         Response response = CourierCreateSteps.createCourier("", password, firstName);
-        CourierCreateSteps.checkCreatingCourierWithoutLoginPassword(response); // Проверка ошибки при отсутствии логина
+        CourierCreateSteps.checkCreatingCourierWithoutLoginPassword(response);
     }
 
     @Test
@@ -62,6 +71,14 @@ public class CourierCreateTest {
     @Description("Проверка, что возвращаемые тело ответа 'message: Недостаточно данных для создания учетной записи' и код ответа '400'")
     public void checkResponseWithoutPassword() {
         Response response = CourierCreateSteps.createCourier(login, "", firstName);
-        CourierCreateSteps.checkCreatingCourierWithoutLoginPassword(response); // Проверка ошибки при отсутствии пароля
+        CourierCreateSteps.checkCreatingCourierWithoutLoginPassword(response);
+    }
+
+    @After
+    public void deleteCourierAfterTest() {
+        if (courierId != null) {
+            Response response = CourierCreateSteps.deleteCourier(courierId);
+            response.then().statusCode(SC_OK);
+        }
     }
 }
