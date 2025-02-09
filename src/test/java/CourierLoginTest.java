@@ -1,20 +1,30 @@
+import com.github.javafaker.Faker;
 import courier.CourierCreateSteps;
 import courier.CourierLoginSteps;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.apache.http.HttpStatus.SC_OK;
+
 public class CourierLoginTest {
 
-    private final String login = "login2025";
-    private final String password = "2025";
-    private final String firstName = "Name2025";
+    private String courierId;
+    private String login;
+    private String password;
+    private String firstName;
+    private Faker faker;
 
     @Before
     public void setUp() {
+        faker = new Faker();
+        login = faker.name().username();
+        password = faker.internet().password();
+        firstName = faker.name().firstName();
         Base.baseUrl();
     }
 
@@ -24,9 +34,8 @@ public class CourierLoginTest {
     public void loginCourier() {
         CourierCreateSteps.createCourier(login, password, firstName);
         Response response = CourierLoginSteps.loginCourierResponse(login, password);
-        CourierLoginSteps.responseAfterSuccessfulAuthorization(response);;
-        String id = response.jsonPath().getString("id");
-        CourierCreateSteps.deleteCourier(id);
+        courierId = response.jsonPath().getString("id");
+        CourierLoginSteps.responseAfterSuccessfulAuthorization(response);
     }
 
     @Test
@@ -61,4 +70,13 @@ public class CourierLoginTest {
         Response response = CourierLoginSteps.loginCourierResponse(login, "");
         CourierLoginSteps.errorWhenLoginPasswordEmpty(response);
     }
+
+    @After
+    public void deleteCourierAfterTest() {
+        if (courierId != null) {
+            Response response = CourierCreateSteps.deleteCourier(courierId);
+            response.then().statusCode(SC_OK);
+        }
+    }
+
 }

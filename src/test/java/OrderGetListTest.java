@@ -5,7 +5,7 @@ import order.OrderSteps;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OrderGetList {
+public class OrderGetListTest {
 
     @Before
     public void setUp() {

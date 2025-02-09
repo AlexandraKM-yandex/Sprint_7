@@ -21,7 +21,7 @@ public class OrderTest {
         this.color = color;
     }
 
-    @Parameterized.Parameters(name = "Тестовые данные: {0}")  // Улучшенная информативность
+    @Parameterized.Parameters(name = "Тестовые данные: {0}")
     public static Collection<Object[]> colorParameters() {
         return Arrays.asList(new Object[][]{
                 {Arrays.asList("BLACK")},
@@ -50,13 +50,15 @@ public class OrderTest {
         String deliveryDate = "2025-05-05";
         String comment = "А вообще, я хотела розовый";
         Response response = OrderSteps.OrderCreate(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, color);
-        OrderSteps.orderCreationSuccess(response);
         track = response.jsonPath().getInt("track");
+        OrderSteps.orderCreationSuccess(response);
     }
 
     @After
     public void cancel() {
-        Response cancelResponse = OrderSteps.cancelOrder(track);
-        OrderSteps.cancelOrderSuccess(cancelResponse);
+        if (track != 0) {
+            Response cancelResponse = OrderSteps.cancelOrder(track);
+            OrderSteps.cancelOrderSuccess(cancelResponse);
+        }
     }
 }

@@ -4,14 +4,10 @@ import courier.CourierLoginSteps;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
-
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import static org.apache.http.HttpStatus.SC_OK;
-
 
 public class CourierCreateTest {
 
@@ -35,8 +31,8 @@ public class CourierCreateTest {
     @Description("Проверка, что возвращаемые тело ответа 'ok: true' и код ответа '201'")
     public void createNewCourier() {
         Response response = CourierCreateSteps.createCourier(login, password, firstName);
-        CourierCreateSteps.checkCreatingCourier(response);
         courierId = response.jsonPath().getString("id");
+        CourierCreateSteps.checkCreatingCourier(response);
     }
 
     @Test
@@ -44,8 +40,8 @@ public class CourierCreateTest {
     @Description("Проверка, что возвращаемые тело ответа 'ok: true' и код ответа '201'")
     public void createCourierWithOnlyRequiredFields() {
         Response response = CourierCreateSteps.createCourierWithoutFirstName(login, password);
-        CourierCreateSteps.checkCreatingCourier(response);
         courierId = response.jsonPath().getString("id");
+        CourierCreateSteps.checkCreatingCourier(response);
     }
 
     @Test
@@ -54,8 +50,8 @@ public class CourierCreateTest {
     public void cantCreateDuplicateCourier() {
         CourierCreateSteps.createCourier(login, password, firstName);
         Response response = CourierCreateSteps.createCourier(login, password, firstName);
-        CourierCreateSteps.checkCreatingCourierWithDuplicatedLogin(response);
         courierId = CourierLoginSteps.loginCourierId(login, password);
+        CourierCreateSteps.checkCreatingCourierWithDuplicatedLogin(response);
     }
 
     @Test
